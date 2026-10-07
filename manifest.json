@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "id": "archer.power",
-  "name": "My Power",
+  "id": "io.github.rk4500.archer-power",
+  "name": "Archer Power",
   "version": "1.0.0",
   "author": "Omarchy",
   "description": "Battery, power profile, and system stats",
@@ -12,7 +12,7 @@
     "barWidget": "Panel.qml"
   },
   "barWidget": {
-    "displayName": "My Power",
+    "displayName": "Archer Power",
     "description": "Battery, power profile, and system stats",
     "category": "System",
     "allowMultiple": false
