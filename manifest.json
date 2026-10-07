@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "io.github.rk4500.archer-power",
-  "name": "Archer Power",
+  "id": "io.github.rk4500.power-tooltip",
+  "name": "Power Panel with Tooltip",
   "version": "1.0.0",
-  "author": "Omarchy",
+  "author": "rk4500 (fork of Omarchy)",
   "description": "Battery, power profile, and system stats",
   "kinds": [
     "bar-widget"
@@ -12,12 +12,13 @@
     "barWidget": "Panel.qml"
   },
   "barWidget": {
-    "displayName": "Archer Power",
+    "displayName": "Power Panel with Tooltip",
     "description": "Battery, power profile, and system stats",
     "category": "System",
     "allowMultiple": false
   },
   "omarchy": {
     "clonedFrom": "omarchy.power"
-  }
+  },
+  "homepage": "https://github.com/rk4500/omarchy-power-tooltip"
 }

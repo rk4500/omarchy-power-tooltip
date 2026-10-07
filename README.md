@@ -1,8 +1,8 @@
-# Archer Power
+# Power Panel with Tooltip
 
 Omarchy power panel with a battery tooltip showing time remaining (or to full) and wattage.
 
-A modified copy of the built-in `omarchy.power` plugin from [Omarchy](https://github.com/basecamp/omarchy) (MIT). It replaces the stock plugin when enabled; `omarchy plugin remove io.github.rk4500.archer-power` restores it.
+A modified copy of the built-in `omarchy.power` plugin from [Omarchy](https://github.com/basecamp/omarchy) (MIT). It replaces the stock plugin when enabled; `omarchy plugin remove io.github.rk4500.power-tooltip` restores it.
 
 Install: `omarchy plugin add <this repo's git URL> --enable`
 
