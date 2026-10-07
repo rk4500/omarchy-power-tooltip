@@ -281,9 +281,7 @@ Panel {
       ? Math.round(root.batteryFraction * 100) + "% " + root.batteryIcon()
       : root.batteryIcon()
     slotSize: Style.bar.iconSlot * (root.showPercentage && !vertical ? 2 : 1)
-    tooltipText: root.batteryPresent
-      ? Math.round(root.batteryFraction * 100) + "% · " + root.modeLabel()
-      : "No battery"
+    tooltipText: Model.tooltipText(UPower.displayDevice, root.discharging, root.upowerStates())
     onPressed: function(b) {
       if (!root.batteryPresent) return
       if (b === Qt.RightButton) root.togglePercentage()

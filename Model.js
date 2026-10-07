@@ -89,6 +89,28 @@ function modeLabel(device, onBattery, states) {
   return "Charging"
 }
 
+function formatDuration(seconds) {
+  var mins = Math.round(Number(seconds || 0) / 60)
+  if (mins <= 0) return ""
+  var h = Math.floor(mins / 60)
+  var r = mins % 60
+  return h > 0 ? h + "h " + r + "m" : r + "m"
+}
+
+// "1h 5m · 12.3 W": time to empty (discharging) or to full (charging), then
+// draw. Falls back to the mode label when there is no estimate (full, held).
+function tooltipText(device, onBattery, states) {
+  var d = device || {}
+  if (!d.isPresent) return "No battery"
+  var idle = chargeThresholdActive(d, onBattery, states) || d.state === states.FullyCharged
+  var time = idle ? "" : formatDuration(onBattery ? d.timeToEmpty : d.timeToFull)
+  var watts = idle ? "" : Math.abs(Number(d.changeRate || 0)).toFixed(1) + " W"
+  var parts = []
+  if (time) parts.push(time)
+  if (watts && Number(d.changeRate || 0) !== 0) parts.push(watts)
+  return parts.length ? parts.join(" · ") : modeLabel(d, onBattery, states)
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     clampIndex: clampIndex,
@@ -99,6 +121,8 @@ if (typeof module !== "undefined") {
     batteryFraction: batteryFraction,
     chargeThresholdActive: chargeThresholdActive,
     batteryIcon: batteryIcon,
-    modeLabel: modeLabel
+    modeLabel: modeLabel,
+    formatDuration: formatDuration,
+    tooltipText: tooltipText
   }
 }
