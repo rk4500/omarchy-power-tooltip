@@ -525,6 +525,11 @@ Panel {
                 verticalPadding: Style.spacing.controlPaddingY + Style.space(2)
                 bordered: true
                 active: root.activeProfile === modelData
+                // Keep the selected fill while hovering the active chip; hover shows via its border.
+                Binding on color {
+                  when: root.activeProfile === modelData
+                  value: Style.selectedFillFor(root.bar.foreground, Color.accent)
+                }
                 hasCursor: root.cursorActive && root.profileIndex === index
                 onClicked: root.setProfile(modelData)
                 onHovered: function(h) {
