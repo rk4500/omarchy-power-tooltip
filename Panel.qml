@@ -17,6 +17,8 @@ Panel {
   property var systemInfo: ({})
   property var profiles: []
   property string activeProfile: ""
+  // Ultra saver (~/.local/bin/ultra: 60Hz + 6W CPU cap). Its cap state lives in /run/ultrasaver.
+  property bool ultraOn: false
   property int profileIndex: 0
   property bool cursorActive: false
   readonly property bool showPercentage: setting("showPercentage", false) === true
@@ -138,6 +140,7 @@ Panel {
     if (!batteryProc.running) batteryProc.running = true
     if (!profilesProc.running) profilesProc.running = true
     if (!systemProc.running) systemProc.running = true
+    if (!ultraProc.running) ultraProc.running = true
   }
 
   function updateKeyValue(raw, targetName) {
@@ -166,6 +169,12 @@ Panel {
   function setProfile(profile) {
     if (!profile || actionProc.running) return
     actionProc.command = ["omarchy-powerprofiles-set", root.discharging ? "battery" : "ac", profile]
+    actionProc.running = true
+  }
+
+  function toggleUltra() {
+    if (actionProc.running) return
+    actionProc.command = [Quickshell.env("HOME") + "/.local/bin/ultra", "toggle"]
     actionProc.running = true
   }
 
@@ -221,6 +230,12 @@ Panel {
     id: systemProc
     command: ["omarchy-system-stats"]
     stdout: StdioCollector { waitForEnd: true; onStreamFinished: root.updateKeyValue(text, "system") }
+  }
+
+  Process {
+    id: ultraProc
+    command: ["test", "-d", "/run/ultrasaver"]
+    onExited: function(code) { root.ultraOn = code === 0 }
   }
 
   Process {
@@ -501,6 +516,22 @@ Panel {
                 }
               }
             }
+          }
+
+          // 60Hz + 6W CPU cap. Asks for authentication (polkit) on each switch.
+          Button {
+            width: parent.width
+            iconText: "󰌪"
+            iconSize: Style.font.title
+            text: root.ultraOn ? "Ultra saver · on (60Hz · 6W)" : "Ultra saver"
+            fontSize: Style.font.bodySmall
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
+            horizontalPadding: Style.spacing.controlPaddingX
+            verticalPadding: Style.spacing.controlPaddingY + Style.space(2)
+            bordered: true
+            active: root.ultraOn
+            onClicked: root.toggleUltra()
           }
         }
       }
