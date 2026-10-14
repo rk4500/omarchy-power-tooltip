@@ -121,6 +121,7 @@ Panel {
 
   // Whichever list is "active" given the current power state.
   readonly property var activePhrases: {
+    if (ultraOn) return []
     if (fullyCharged) return []
     if (charging) return chargingPhrases
     if (discharging) return onBatteryPhrases
@@ -129,6 +130,8 @@ Panel {
   readonly property bool rotatingPhrases: activePhrases.length > 0
 
   readonly property string heroStatusText: {
+    // Ultra saver replaces the rotating phrase: it's the state worth reading first.
+    if (ultraOn) return "Ultra saver · 60Hz · 6W cap"
     if (fullyCharged) return "Fully charged"
     if (rotatingPhrases) return activePhrases[phraseIndex % activePhrases.length]
     return modeLabel()
