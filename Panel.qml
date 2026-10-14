@@ -168,13 +168,25 @@ Panel {
 
   function setProfile(profile) {
     if (!profile || actionProc.running) return
-    actionProc.command = ["omarchy-powerprofiles-set", root.discharging ? "battery" : "ac", profile]
+    var set = ["omarchy-powerprofiles-set", root.discharging ? "battery" : "ac", profile]
+    // Ultra is a mode of Power-saver; picking another profile leaves it.
+    if (root.ultraOn && profile !== "power-saver")
+      set = ["sh", "-c", '"$1" "$2" "$3" && "$4" off', "sh"].concat(set, [root.ultraPath])
+    actionProc.command = set
     actionProc.running = true
   }
 
+  readonly property string ultraPath: Quickshell.env("HOME") + "/.local/bin/ultra"
+
   function toggleUltra() {
     if (actionProc.running) return
-    actionProc.command = [Quickshell.env("HOME") + "/.local/bin/ultra", "toggle"]
+    if (root.ultraOn || root.activeProfile === "power-saver") {
+      actionProc.command = [root.ultraPath, root.ultraOn ? "off" : "on"]
+    } else {
+      // Ultra builds on Power-saver: select it first, then enable.
+      actionProc.command = ["sh", "-c", '"$1" "$2" power-saver && "$3" on', "sh",
+        "omarchy-powerprofiles-set", root.discharging ? "battery" : "ac", root.ultraPath]
+    }
     actionProc.running = true
   }
 
@@ -498,7 +510,11 @@ Panel {
                 width: profileRow.cellWidth
                 iconText: root.profileIcon(String(modelData))
                 iconSize: Style.font.title
-                text: String(modelData).charAt(0).toUpperCase() + String(modelData).slice(1)
+                readonly property bool isSaver: String(modelData) === "power-saver"
+                // Saver is a split control (label left, Ultra toggle right), so its
+                // content starts at the left edge instead of centering under the toggle.
+                leftAlign: isSaver
+                text: isSaver ? "Saver" : String(modelData).charAt(0).toUpperCase() + String(modelData).slice(1)
                 fontSize: Style.font.bodySmall
                 foreground: root.bar.foreground
                 fontFamily: root.bar.fontFamily
@@ -512,27 +528,53 @@ Panel {
                   if (h) {
                     root.cursorActive = true
                     root.profileIndex = index
+                  } else if (root.profileIndex === index) {
+                    // Drop the hover cursor on leave so only the selected chip stays lit.
+                    root.cursorActive = false
+                  }
+                }
+
+                // Ultra saver (60Hz + 6W CPU cap): inset toggle on the Saver chip.
+                Rectangle {
+                  visible: parent.isSaver
+                  anchors.right: parent.right
+                  anchors.rightMargin: Style.space(6)
+                  anchors.verticalCenter: parent.verticalCenter
+                  height: parent.height - Style.space(12)
+                  width: height
+                  radius: Math.max(2, Style.cornerRadius - Style.space(3))
+                  color: root.ultraOn ? Color.accent : "transparent"
+                  border.width: root.ultraOn ? 0 : 1
+                  border.color: Util.alpha(root.bar.foreground, ultraArea.containsMouse ? 0.9 : 0.35)
+                  Behavior on color { ColorAnimation { duration: 120 } }
+
+                  Text {
+                    anchors.centerIn: parent
+                    textFormat: Text.PlainText
+                    text: "󱐋"
+                    color: root.ultraOn ? Color.background : Util.alpha(root.bar.foreground, ultraArea.containsMouse ? 1 : 0.7)
+                    font.family: root.bar.fontFamily
+                    font.pixelSize: Style.font.body
+                  }
+
+                  MouseArea {
+                    id: ultraArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.toggleUltra()
+                  }
+
+                  PanelToolTip {
+                    visible: ultraArea.containsMouse
+                    text: root.ultraOn ? "Ultra saver on · 60Hz · 6W CPU cap" : "Ultra saver · 60Hz · 6W CPU cap"
+                    fontFamily: root.bar.fontFamily
                   }
                 }
               }
             }
           }
 
-          // 60Hz + 6W CPU cap. Asks for authentication (polkit) on each switch.
-          Button {
-            width: parent.width
-            iconText: "󰌪"
-            iconSize: Style.font.title
-            text: root.ultraOn ? "Ultra saver · on (60Hz · 6W)" : "Ultra saver"
-            fontSize: Style.font.bodySmall
-            foreground: root.bar.foreground
-            fontFamily: root.bar.fontFamily
-            horizontalPadding: Style.spacing.controlPaddingX
-            verticalPadding: Style.spacing.controlPaddingY + Style.space(2)
-            bordered: true
-            active: root.ultraOn
-            onClicked: root.toggleUltra()
-          }
         }
       }
     }
